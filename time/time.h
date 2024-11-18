@@ -29,7 +29,6 @@ namespace x {
         public:
             std::string toString() const;
 
-            const uint16_t week;
             const uint8_t day;
             const uint8_t hour;
             const uint8_t minute;
@@ -46,9 +45,12 @@ namespace x {
             static const uint64_t MAX_MILLISECONDS_SINCE_EPOCH;
             static const uint16_t MAX_YEAR;
             static const uint16_t MIN_YEAR;
-            
+
             Stamp(const StampView&);
             Stamp(const Stamp&);
+
+            static Stamp Max();
+            static Stamp Min();
             static Stamp Now();
             static Stamp DateTime(int year, int month, int day, int hour, int minute, int second, int millisecond);
 
@@ -72,13 +74,11 @@ namespace x {
             static const uint64_t MAX_MILLISECONDS;
             static const uint64_t MIN_MILLISECONDS;
 
+            Gap(uint64_t);
             Gap(const Gap&);
-            static Gap Weeks(uint64_t);
-            static Gap Days(uint64_t);
-            static Gap Hours(uint64_t);
-            static Gap Minutes(uint64_t);
-            static Gap Seconds(uint64_t);
-            static Gap MilliSeconds(uint64_t);
+
+            static Gap Max();
+            static Gap Min();
 
             Stamp operator+(const Stamp&)const;
             Gap operator+(const Gap&) const;
@@ -88,14 +88,15 @@ namespace x {
         protected:
             friend class Stamp;
             Gap() = delete;
-            Gap(uint64_t);
-
             uint64_t milliseconds;
         };
 
         bool isValidDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond);
-
+        Gap Weeks(uint64_t);
+        Gap Days(uint64_t);
+        Gap Hours(uint64_t);
+        Gap Minutes(uint64_t);
+        Gap Seconds(uint64_t);
+        Gap MilliSeconds(uint64_t);
     };
-
-
 };
