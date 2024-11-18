@@ -70,6 +70,7 @@ namespace x {
         class Gap {
         public:
             static const uint64_t MAX_MILLISECONDS;
+            static const uint64_t MIN_MILLISECONDS;
 
             Gap(const Gap&);
             static Gap Weeks(uint64_t);
