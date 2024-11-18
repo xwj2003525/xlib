@@ -21,7 +21,7 @@ static uint64_t now_milliseconds_since_epoch() {
 static uint64_t DateTimeToMilliSeconds(int year, int month, int day, int hour, int minute, int second, int millisecond) {
     assert(x::time::isValidDateTime(year, month, day, hour, minute, second, millisecond));
 
-    std::tm tm;
+    std::tm tm{};
     tm.tm_year = year - 1900;
     tm.tm_mon = month - 1;
     tm.tm_mday = day;
@@ -35,6 +35,7 @@ static uint64_t DateTimeToMilliSeconds(int year, int month, int day, int hour, i
 
 //Windos PASS
 static std::tm MilliSecondstoTm(uint64_t  milliSecondsSinceEpoch_) {
+    assert(milliSecondsSinceEpoch_ >= x::time::Stamp::MIN_MILLISECONDS_SINCE_EPOCH && milliSecondsSinceEpoch_ <= x::time::Stamp::MAX_MILLISECONDS_SINCE_EPOCH);
     std::time_t seconds = milliSecondsSinceEpoch_ / 1000ULL;
     std::tm tm;
 
@@ -68,15 +69,15 @@ bool x::time::isValidDateTime(int year, int month, int day, int hour, int minute
 // Stamp construct
 // PASS
 
-const uint64_t x::time::Stamp::MIN_MILLISECONDS_SINCE_EPOCH = 0;
-const uint64_t x::time::Stamp::MAX_MILLISECONDS_SINCE_EPOCH = 97858108799999;
-const uint16_t x::time::Stamp::MAX_YEAR = 5000;
-const uint16_t x::time::Stamp::MIN_YEAR = 1900;
+const uint64_t x::time::Stamp::MIN_MILLISECONDS_SINCE_EPOCH = 946656000000;
+const uint64_t x::time::Stamp::MAX_MILLISECONDS_SINCE_EPOCH = 32535187199999;
+const uint16_t x::time::Stamp::MAX_YEAR = 3000;
+const uint16_t x::time::Stamp::MIN_YEAR = 2000;
 
 x::time::Stamp::Stamp(const StampView& v):milliseconds_since_epoch(DateTimeToMilliSeconds(v.year, v.month, v.day, v.hour, v.minute, v.second, v.millisecond)){}
 
 x::time::Stamp::Stamp(uint64_t m) :milliseconds_since_epoch(m) {
-    assert(m <= MAX_MILLISECONDS_SINCE_EPOCH);
+    assert(m <= MAX_MILLISECONDS_SINCE_EPOCH && m >= MIN_MILLISECONDS_SINCE_EPOCH);
 }
 
 // PASS
@@ -93,7 +94,7 @@ x::time::Stamp x::time::Stamp::DateTime(int year, int month, int day, int hour, 
 
 // PASS
 x::time::Stamp::Stamp(const Stamp& s) :milliseconds_since_epoch(s.milliseconds_since_epoch) {
-    assert(milliseconds_since_epoch <= MAX_MILLISECONDS_SINCE_EPOCH);
+    assert(milliseconds_since_epoch <= MAX_MILLISECONDS_SINCE_EPOCH && milliseconds_since_epoch >= MIN_MILLISECONDS_SINCE_EPOCH);
 }
 
 // Stamp op
@@ -117,13 +118,13 @@ x::time::Stamp& x::time::Stamp::operator+=(const Gap& g) {
 
 // PASS
 x::time::Stamp x::time::Stamp::operator-(const Gap& g) const {
-    assert(milliseconds_since_epoch >= g.milliseconds);
+    assert(milliseconds_since_epoch >= g.milliseconds && (milliseconds_since_epoch - g.milliseconds) >= MIN_MILLISECONDS_SINCE_EPOCH);
     return Stamp(milliseconds_since_epoch - g.milliseconds);
 }
 
 // PASS
 x::time::Stamp& x::time::Stamp::operator-=(const Gap& g) {
-    assert(milliseconds_since_epoch >= g.milliseconds);
+    assert(milliseconds_since_epoch >= g.milliseconds && (milliseconds_since_epoch - g.milliseconds) >= MIN_MILLISECONDS_SINCE_EPOCH);
     milliseconds_since_epoch -= g.milliseconds;
     return *this;
 }
@@ -144,8 +145,9 @@ x::time::StampView x::time::Stamp::View()const {
 
 
 // gap construct
-const uint64_t x::time::Gap::MAX_MILLISECONDS = 1210694400000;
-const uint16_t x::time::Gap::MAX_WEEK = 2003;
+const uint64_t x::time::Gap::MAX_MILLISECONDS = 31588531199999;
+const uint64_t x::time::Gap::MIN_MILLISECONDS = 0;
+
 
 // PASS
 x::time::Gap::Gap(uint64_t m) :milliseconds(m) {
