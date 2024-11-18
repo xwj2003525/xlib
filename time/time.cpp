@@ -74,6 +74,16 @@ const uint64_t x::time::Stamp::MAX_MILLISECONDS_SINCE_EPOCH = 32535187199999;
 const uint16_t x::time::Stamp::MAX_YEAR = 3000;
 const uint16_t x::time::Stamp::MIN_YEAR = 2000;
 
+x::time::Stamp x::time::Stamp::Max()
+{
+    return Stamp(MAX_MILLISECONDS_SINCE_EPOCH);
+}
+
+x::time::Stamp x::time::Stamp::Min()
+{
+    return Stamp(MIN_MILLISECONDS_SINCE_EPOCH);
+}
+
 x::time::Stamp::Stamp(const StampView& v):milliseconds_since_epoch(DateTimeToMilliSeconds(v.year, v.month, v.day, v.hour, v.minute, v.second, v.millisecond)){}
 
 x::time::Stamp::Stamp(uint64_t m) :milliseconds_since_epoch(m) {
@@ -145,7 +155,7 @@ x::time::StampView x::time::Stamp::View()const {
 
 
 // gap construct
-const uint64_t x::time::Gap::MAX_MILLISECONDS = 31588531199999;
+constexpr uint64_t x::time::Gap::MAX_MILLISECONDS = x::time::Stamp::MAX_MILLISECONDS_SINCE_EPOCH - x::time::Stamp::MIN_MILLISECONDS_SINCE_EPOCH;
 const uint64_t x::time::Gap::MIN_MILLISECONDS = 0;
 
 
@@ -159,38 +169,48 @@ x::time::Gap::Gap(const Gap& g) :milliseconds(g.milliseconds) {
     assert(g.milliseconds <= MAX_MILLISECONDS);
 }
 
+x::time::Gap x::time::Gap::Max()
+{
+    return Gap(MAX_MILLISECONDS);
+}
+
+x::time::Gap x::time::Gap::Min()
+{
+    return Gap(MIN_MILLISECONDS);
+}
+
 // gap factory construct
 // PASS
-x::time::Gap x::time::Gap::MilliSeconds(uint64_t m)
+x::time::Gap x::time::MilliSeconds(uint64_t m)
 {
-    return Gap(m);
+    return x::time::Gap(m);
 }
 
 // PASS
-x::time::Gap x::time::Gap::Seconds(uint64_t s)
+x::time::Gap x::time::Seconds(uint64_t s)
 {
-    return Gap(s * 1000ULL);
+    return x::time::Gap(s * 1000ULL);
 }
 
 // PASS
-x::time::Gap x::time::Gap::Minutes(uint64_t m)
+x::time::Gap x::time::Minutes(uint64_t m)
 {
-    return Gap(m * 60 * 1000ULL);
+    return x::time::Gap(m * 60 * 1000ULL);
 }
 
 // PASS
-x::time::Gap x::time::Gap::Hours(uint64_t h) {
-    return Gap(h * 60 * 60 * 1000ULL);
+x::time::Gap x::time::Hours(uint64_t h) {
+    return x::time::Gap(h * 60 * 60 * 1000ULL);
 }
 
 // PASS
-x::time::Gap x::time::Gap::Days(uint64_t d) {
-    return Gap(d * 24 * 60 * 60 * 1000ULL);
+x::time::Gap x::time::Days(uint64_t d) {
+    return x::time::Gap(d * 24 * 60 * 60 * 1000ULL);
 }
 
 // PASS
-x::time::Gap x::time::Gap::Weeks(uint64_t w) {
-    return Gap(w * 7 * 24 * 60 * 60 * 1000ULL);
+x::time::Gap x::time::Weeks(uint64_t w) {
+    return x::time::Gap(w * 7 * 24 * 60 * 60 * 1000ULL);
 }
 
 // PASS
@@ -215,8 +235,6 @@ x::time::Gap& x::time::Gap::operator+=(const Gap& g) {
 // PASS
 x::time::GapView x::time::Gap::View()const {
     uint64_t remainingTime = milliseconds;
-    uint16_t weeks = remainingTime / (24ULL * 7 * 3600 * 1000);
-    remainingTime %= (24ULL * 7 * 3600 * 1000);
     uint8_t days = remainingTime / (24ULL * 3600 * 1000);
     remainingTime %= (24ULL * 3600 * 1000);
     uint8_t hours = remainingTime / (3600 * 1000);
@@ -225,7 +243,7 @@ x::time::GapView x::time::Gap::View()const {
     remainingTime %= (60 * 1000);
     uint8_t seconds = remainingTime / 1000; remainingTime %= 1000;
     uint16_t milliseconds_ = remainingTime;
-    return { weeks, days, hours, minutes, seconds, milliseconds_ };
+    return { days, hours, minutes, seconds, milliseconds_ };
 }
 
 std::string x::time::StampView::toString() const
@@ -235,5 +253,6 @@ std::string x::time::StampView::toString() const
 
 std::string x::time::GapView::toString() const
 {
-    std::ostringstream oss; oss << week << "w" << std::setw(1) << static_cast<uint16_t>(day) << "d" << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(hour) << "h" << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(minute) << "m" << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(second) << "s" << std::setw(3) << std::setfill('0') << millisecond << "ms"; return oss.str();
+    std::ostringstream oss; oss <<  static_cast<uint16_t>(day) << " " << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(hour) << ":" << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(minute) << ":" << std::setw(2) << std::setfill('0') << static_cast<uint16_t>(second) << "." << std::setw(3) << std::setfill('0') << millisecond; return oss.str();
+
 }
