@@ -60,7 +60,7 @@ static std::tm MilliSecondstoTm(uint64_t  milliSecondsSinceEpoch_) {
 }
 
 //PASS
-bool x::time::isValidDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
+constexpr bool x::time::isValidDateTime(int year, int month, int day, int hour, int minute, int second, int millisecond)
 {
     if (!(1 <= month && month <= 12))return false;
 
