@@ -44,9 +44,8 @@ StampView用于存储Stamp中具体年月日时分秒毫秒信息。以及toStri
 GapView用于存储Gap表示的多少天+多少小时+多少分+多少秒+多少毫秒,以及toString
 ```
 
-StampView可参与构造Stamp，而GapView无需参与构造Gap，因为有更清晰的工厂可获取需要的Gap
 
 ## assert错误
 
 1. 构造Stamp时，需要保证日期真实存在，考虑润年因素
-2. 进行构造或运算时，需要保证构造或运算后的Stamp和Gap仍处于可用范围
+
