@@ -100,6 +100,10 @@ bool x::time::Stamp::isPast() const {
   return milliseconds_since_epoch < Now().milliseconds_since_epoch;
 }
 
+bool x::time::Stamp::isValid() const {
+  return milliseconds_since_epoch != 0;
+}
+
 x::time::Gap x::time::Stamp::operator-(const Stamp &s) const {
   return Gap(sub(milliseconds_since_epoch, s.milliseconds_since_epoch));
 }
@@ -140,6 +144,10 @@ x::time::Gap::Gap(const Gap &g) : Gap(g.milliseconds) {}
 uint64_t x::time::Gap::MilliSeconds() const { return milliseconds; }
 
 x::time::Gap x::time::Gap::MilliSeconds(uint64_t m) { return x::time::Gap(m); }
+
+bool x::time::Gap::isValid()const{
+  return milliseconds != 0;
+}
 
 x::time::Gap x::time::Gap::Seconds(uint64_t s) {
   return x::time::Gap(s * MS_IN_A_SECOND);
