@@ -49,6 +49,7 @@ public:
 
   bool operator<(const Stamp &) const;
   bool isPast() const;
+  bool isValid()const;
 
   Gap operator-(const Stamp &) const;
   Stamp operator+(const Gap &) const;
@@ -73,6 +74,7 @@ public:
   Gap(uint64_t);
   Gap(const Gap &);
 
+  bool isValid()const;
   GapView View() const;
   uint64_t MilliSeconds() const;
 
