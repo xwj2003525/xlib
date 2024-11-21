@@ -1,7 +1,7 @@
 #include "time.h"
 #include <assert.h>
 #include <chrono>
-
+#include <iomanip>
 static constexpr uint8_t days_in_month[13] = {0,  31, 28, 31, 30, 31, 30,
                                               31, 31, 30, 31, 30, 31};
 static constexpr uint64_t MS_IN_A_SECOND = 1000ULL;
@@ -79,6 +79,8 @@ x::time::Stamp x::time::Stamp::Now() {
   return Stamp(now_milliseconds_since_epoch());
 }
 
+x::time::Stamp x::time::Stamp::InValid() { return Stamp(0); }
+
 x::time::Stamp x::time::Stamp::When(int year, int month, int day, int hour,
                                     int minute, int second, int millisecond) {
   return Stamp(DateTimeToMilliSeconds(year, month, day, hour, minute, second,
@@ -100,9 +102,7 @@ bool x::time::Stamp::isPast() const {
   return milliseconds_since_epoch < Now().milliseconds_since_epoch;
 }
 
-bool x::time::Stamp::isValid() const {
-  return milliseconds_since_epoch != 0;
-}
+bool x::time::Stamp::isValid() const { return milliseconds_since_epoch != 0; }
 
 x::time::Gap x::time::Stamp::operator-(const Stamp &s) const {
   return Gap(sub(milliseconds_since_epoch, s.milliseconds_since_epoch));
@@ -145,9 +145,9 @@ uint64_t x::time::Gap::MilliSeconds() const { return milliseconds; }
 
 x::time::Gap x::time::Gap::MilliSeconds(uint64_t m) { return x::time::Gap(m); }
 
-bool x::time::Gap::isValid()const{
-  return milliseconds != 0;
-}
+bool x::time::Gap::isValid() const { return milliseconds != 0; }
+
+x::time::Gap x::time::Gap::InValid() { return Gap(0); }
 
 x::time::Gap x::time::Gap::Seconds(uint64_t s) {
   return x::time::Gap(s * MS_IN_A_SECOND);

@@ -1,64 +1,82 @@
 #pragma once
 #include "../time/time.h"
 #include <atomic>
-#include <map>
-#include <thread>
-#include <mutex>
-#ifdef REACTOR_ENABLE_FUNCTIONAL
 #include <functional>
-#endif
+#include <map>
+#include <mutex>
+#include <sys/epoll.h>
+#include <thread>
+#include <vector>
 
 namespace x {
-	namespace Eventloop {
+namespace Eventloop {
 
-#ifdef REACTOR_ENABLE_FUNCTIONAL
-#pragma message("use callable as std::functional<void()>")
-	using Callable = std::function<void()>;
-#else
-	using Callable = void (*)();
-#pragma message("use callable as void(*)()")
-#endif
+using Callable = std::function<void()>;
+using Stamp = x::time::Stamp;
+using Gap = x::time::Gap;
+using Fd = int32_t;
+using Event = int16_t;
+using Iteration = uint64_t;
 
-	using Stamp = x::time::Stamp;
-	using Gap = x::time::Gap;
-	using Fd = int32_t;
-	using Events = int16_t;
-	using Iteration = uint64_t;
+constexpr uint8_t None = 0;
+constexpr uint8_t Read = 1;
+constexpr uint8_t Write = 2;
+constexpr uint8_t Error = 4;
+constexpr uint8_t Timeout = 8;
+constexpr uint8_t Close = 16;
 
-	enum class Event : int16_t { Read = 1, Write = 2, Error = 4, Timeout = 8, Close = 16 };
+class EventView {
+public:
+  Fd fd;
+  Event event;
+  Callable callable;
+  Iteration iteration;
+  EventView(Fd fd, Event event, Callable callable, Iteration iteration)
+      : fd(fd), event(event), callable(callable), iteration(iteration) {}
+};
+class TimeEventView : public EventView {
+public:
+  Stamp when;
+  Gap interval;
+  TimeEventView(Fd fd, Event event, Callable callable, Iteration iteration,
+                Stamp when, Gap interval)
+      : EventView(fd, event, callable, iteration), when(when),
+        interval(interval) {}
+};
 
-	class EventView {
-	public:
-		Fd fd;
-		Event event;
-		Callable callable;
-		Iteration iteration;
-		
-		// 只有计划任务关心此两个成员
-		Stamp plan; 
-		Gap interval;
-	};
+class Reactor {
+public:
+  Reactor(const Reactor &) = delete;
+  Reactor &operator=(const Reactor &) = delete;
 
-	class Reactor : boost::noncopyable {
-	public:
-		Reactor();
-		~Reactor();
+  // Owner thread call only
+  Reactor(uint16_t m, const Gap &);
+  ~Reactor();
+  void run();
+  void add(Fd, Event, const Callable &);
+  void del(Fd, Event);
+  void del(Fd); // delete common fd
+  Event get(Fd) const;
+  EventView get(Fd, Event) const; // user should make sure event exist
 
-		void run();
-		void stop();
+  // any thread
+  void stop();
+  TimeEventView check(Fd);
+  Fd plan(const Callable &, const Stamp &, const Gap &);
+  void cancel(Fd); // delete time fd
 
-		void add(Fd,Event,Callable);
-		void del(Fd,Event);
-		void del(Fd);
-		Events get(Fd);
-		EventView get(Fd, Event);
-		Fd  plan(Callable, Stamp, Gap);
-	protected:
-		std::atomic<bool> running_;
-		const std::thread::id tid_;
-		std::atomic<Iteration> iteration_;
-		std::map<Fd, std::map<Event,std::pair<Iteration, Callable>>> fd_event_callable_;
-		std::mutex mutex_;
-	};
-	};
+  bool isOwner() const;
+
+protected:
+  const int Max_Events;
+  const Gap Max_Timeout;
+  const int epoll_fd;
+  std::atomic<bool> running_;
+  std::atomic<Iteration> iteration_;
+  std::map<Fd, std::map<Event, std::pair<Iteration, Callable>>>
+      fd_event_callable_;
+  std::map<Fd, std::pair<Stamp, Gap>> timefd_info_;
+  mutable std::mutex mutex_;
+};
+}; // namespace Eventloop
 }; // namespace x
