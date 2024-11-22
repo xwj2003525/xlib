@@ -3,12 +3,6 @@
 #include <cstdint>
 #include <string>
 
-#if defined(_WIN32) || defined(_WIN64) // Windows-specific macros
-#define PLATFORM_WINDOWS
-#else // POSIX systems (Linux/macOS)
-#define PLATFORM_UNIX
-#endif
-
 namespace x {
 namespace time {
 

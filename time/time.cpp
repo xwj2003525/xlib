@@ -48,11 +48,7 @@ static std::tm MilliSecondstoTm(uint64_t milliSecondsSinceEpoch_) {
   std::time_t seconds = milliSecondsSinceEpoch_ / MS_IN_A_SECOND;
   std::tm tm;
 
-#ifdef PLATFORM_WINDOWS
-  localtime_s(&tm, &seconds); // Windows-safe version
-#elif defined(PLATFORM_UNIX)
   localtime_r(&seconds, &tm); // POSIX-safe version
-#endif
 
   return tm;
 }
