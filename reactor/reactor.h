@@ -2,11 +2,8 @@
 #include "../time/time.h"
 #include <atomic>
 #include <functional>
-#include <map>
 #include <mutex>
-#include <sys/epoll.h>
-#include <thread>
-#include <vector>
+#include <unordered_map>
 
 namespace x {
 namespace Eventloop {
@@ -55,27 +52,25 @@ public:
   void run();
   void add(Fd, Event, const Callable &);
   void del(Fd, Event);
-  void del(Fd); // delete common fd
+  void del(Fd);
   Event get(Fd) const;
   EventView get(Fd, Event) const; // user should make sure event exist
 
   // any thread
   void stop();
   TimeEventView check(Fd);
-  Fd plan(const Callable &, const Stamp &, const Gap &);
+  Fd plan(const Callable &, const Stamp &, const Gap & = Gap::InValid());
   void cancel(Fd); // delete time fd
-
-  bool isOwner() const;
 
 protected:
   const int Max_Events;
   const Gap Max_Timeout;
   const int epoll_fd;
   std::atomic<bool> running_;
-  std::atomic<Iteration> iteration_;
-  std::map<Fd, std::map<Event, std::pair<Iteration, Callable>>>
+  std::unordered_map<Fd,
+                     std::unordered_map<Event, std::pair<Iteration, Callable>>>
       fd_event_callable_;
-  std::map<Fd, std::pair<Stamp, Gap>> timefd_info_;
+  std::unordered_map<Fd, std::pair<Stamp, Gap>> timefd_info_;
   mutable std::mutex mutex_;
 };
 }; // namespace Eventloop
