@@ -59,6 +59,14 @@ x::Eventloop::Reactor::Reactor(uint16_t m, const Gap &g)
   if (reactor_in_this_thread != nullptr) {
     LOG(FATAL) << "Another reactor is already running in this thread!";
   }
+
+  struct epoll_event event;
+  event.events = EPOLLIN | EPOLLET; // 设置LT模式
+  event.data.fd = 0;                // 文件描述符
+  if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, 0, &event) == -1) {
+    LOG(FATAL) << "epoll_ctl failed";
+  }
+
   reactor_in_this_thread = this;
   LOG(INFO) << "Reactor created with max events: " << Max_Events
             << " max timeout: " << Max_Timeout.MilliSeconds() << "ms";
