@@ -61,7 +61,7 @@ x::Eventloop::Reactor::Reactor(uint16_t m, const Gap &g)
   }
   reactor_in_this_thread = this;
   LOG(INFO) << "Reactor created with max events: " << Max_Events
-            << " max timeout" << Max_Timeout.View().toString();
+            << " max timeout: " << Max_Timeout.MilliSeconds() << "ms";
 }
 
 x::Eventloop::Reactor::~Reactor() {
@@ -73,10 +73,10 @@ x::Eventloop::Reactor::~Reactor() {
     for (const auto &[k, v] : timefd_info_) {
       close(k);
     }
+    close(epoll_fd);
+    reactor_in_this_thread = nullptr;
   }
 
-  close(epoll_fd);
-  reactor_in_this_thread = nullptr;
   LOG(INFO) << "Reactor destroyed";
 }
 
@@ -85,6 +85,10 @@ void x::Eventloop::Reactor::add(Fd f, Event e, const Callable &c) {
     LOG(FATAL) << "Reactor is not matching the thread!";
   }
   LOG(INFO) << "Adding fd: " << f << " with event: " << e;
+
+  if (!(e & Read || e & Write || e & Error || e & Timeout || e & Close)) {
+    LOG(FATAL) << "not valid event input";
+  }
 
   add_fd_to_epoll(epoll_fd, f, e);
 
@@ -239,7 +243,7 @@ void x::Eventloop::Reactor::run() {
     }
   }
 
-  LOG(INFO) << "Reactor has stopped";
+  LOG(INFO) << "Reactor is not running";
 }
 
 x::Eventloop::Fd x::Eventloop::Reactor::plan(const Callable &c, const Stamp &s,
